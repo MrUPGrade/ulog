@@ -1,1 +1,1 @@
-from logger import Logger
+from ulog.logger import Logger

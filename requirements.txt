@@ -1,0 +1,5 @@
+pytest
+mock
+coverage
+six
+enum34

@@ -167,7 +167,7 @@ class Test_log_return(object):
         f()
 
         assert backend_mock.log.call_count == 1
-        backend_mock.log.assert_called_with(LogLevel.Debug, 'msg%s' % RETURN_VALUE)
+        backend_mock.log.assert_called_with(LogLevel.Debug, 'msg' + RETURN_VALUE)
 
     def test_if_value_is_returned(self, backend_mock):
         logger = ULog(logger=backend_mock, log_level=LogLevel.Debug)

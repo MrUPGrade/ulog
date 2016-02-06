@@ -61,3 +61,9 @@ class Test_ULog(object):
             myfunc()
 
         assert backend_mock.exception.call_count == 1
+
+class Test_get_all_params(object):
+    def test_1(self):
+        def f(a, b=''):
+            pass
+

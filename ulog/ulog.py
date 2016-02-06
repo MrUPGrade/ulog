@@ -58,22 +58,48 @@ class ULog(object):
 
         return decorator
 
-    def log_params(self, msg, params, log_level=LogLevel.Debug):
+    def log_selected_params(self, msg, params, log_level=LogLevel.Debug):
         def decorator(func):
             @wraps(func)
             def inner(*args, **kwargs):
-                log_result = msg
+                log_message = msg
                 for param in params:
                     param_value = extract_param_by_name(func, args, kwargs, param)
-                    log_result += "\n\t%s: %s" % (param, param_value)
+                    log_message += "\n\t%s: %s" % (param, param_value)
 
-                self._logger.log(log_level, log_result)
-                # try:
+                self._log(log_level, log_message)
+
                 result = func(*args, **kwargs)
-                # except Exception as ex:
-                #     self._log_exception(log_level, msg, ex)
-                #
-                #     raise
+
+                return result
+
+            return inner
+
+        return decorator
+
+    def _extract_all_params(self):
+        pass
+
+    def log_params(self, msg=None, log_level=LogLevel.Debug):
+        def decorator(func):
+            @wraps(func)
+            def inner(*args, **kwargs):
+                if msg is None:
+                    log_message = 'Function call: %s' % func.__name__
+                else:
+                    log_message = msg
+
+                func_args = inspect.getargspec(func)
+
+                for i in range(0, len(args)):
+                    log_message += "\n\t%s: %s" % (func_args.args[i], args[i])
+
+                for name, value in kwargs.items():
+                    log_message += "\n\t%s: %s" % (name, value)
+
+                self._log(log_level, log_message)
+
+                result = func(*args, **kwargs)
 
                 return result
 
@@ -88,7 +114,7 @@ class ULog(object):
                 result = func(*args, **kwargs)
 
                 log_result = msg + str(result)
-                self._logger.log(log_level, log_result)
+                self._log(log_level, log_result)
 
                 return result
 

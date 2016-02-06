@@ -1,0 +1,14 @@
+FROM mrupgrade/deadsnakes:__VERSION__
+
+RUN apt-get update && apt-get install sudo
+
+RUN groupadd executor -g __GID__
+
+RUN useradd executor -u __UID__ -g __GID__
+
+COPY docker-entrypoint.sh /
+
+VOLUME /src
+WORKDIR /src
+
+ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -12,7 +12,9 @@ setup(
     description='Simple decorator based logger',
     install_requires=[
         'six',
-        'enum34'
+        'enum34',
+        'funcsigs>=0.4',
+        'future'
     ],
     test_suite='tests',
     extras_require={

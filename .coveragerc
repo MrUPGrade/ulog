@@ -1,0 +1,15 @@
+[run]
+omit=*__init__.py
+branch = True
+source = ulog/
+
+[report]
+exclude_lines =
+    pass
+
+
+[paths]
+source =
+    /home/upgrade/src/ulog/ulog
+    /src/ulog
+    ulog

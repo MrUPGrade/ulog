@@ -77,18 +77,11 @@ class ULog(object):
 
         return decorator
 
-    def _extract_all_params(self):
-        pass
-
-    def log_params(self, msg=None, log_level=LogLevel.Debug):
+    def log_params(self, msg='Function call: {func_name}', log_level=LogLevel.Debug):
         def decorator(func):
             @wraps(func)
             def inner(*args, **kwargs):
-                if msg is None:
-                    log_message = 'Function call: %s' % func.__name__
-                else:
-                    log_message = msg
-
+                log_message = msg.format({'func_name': func.__name__})
                 func_args = inspect.getargspec(func)
 
                 for i in range(0, len(args)):

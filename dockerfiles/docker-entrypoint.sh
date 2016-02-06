@@ -22,6 +22,9 @@ then
     if [ "$1" = "unittest" ]
     then
         sudo -u executor py.test --junitxml=/src/test_${PY_VER}_output.xml ./tests/unittests/
+    elif [ "$1" = "test" ]
+    then
+        sudo -u executor py.test --junitxml=/src/test_${PY_VER}_output.xml ./tests/
     elif [ "$1" = "cov" ]
     then
         sudo -u executor coverage run -m py.test ./tests/unittests/

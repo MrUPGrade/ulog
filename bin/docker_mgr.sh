@@ -37,29 +37,11 @@ run_tests() {
 
         if [ -z $IMG_UUID ]
         then
-            docker run -it -e "PY_VER=${VER}" -v ${SRC_DIR}:/src mrupgrade/${PKG_NAME}_test_${VER} unittest
+            docker run -it -e "PY_VER=${VER}" -v ${SRC_DIR}:/src mrupgrade/${PKG_NAME}_test_${VER} $1
         else
             docker start -ai ${IMG_UUID}
         fi
     done
-}
-
-run_coverage() {
-    cd ${SRC_DIR}
-    rm -f .coverage
-    for VER in ${PYTHON_VERSIONS[@]}
-    do
-
-        IMG_UUID=$(docker ps -a | grep -i mrupgrade/${PKG_NAME}_test_${VER} | awk '{print $1}')
-
-        if [ -z $IMG_UUID ]
-        then
-            docker run -it -e "PY_VER=${VER}" -v ${SRC_DIR}:/src mrupgrade/${PKG_NAME}_test_${VER} cov
-        else
-            docker start -ai ${IMG_UUID}
-        fi
-    done
-    coverage html
 }
 
 if [ -z $1 ]
@@ -73,8 +55,11 @@ then
     build_docker_images
 elif [ "$1" = 'unittest' ]
 then
-    run_tests
+    run_tests $1
+elif [ "$1" = 'test' ]
+then
+    run_tests $1
 elif [ "$1" = 'cov' ]
 then
-    run_coverage
+    run_tests $1
 fi

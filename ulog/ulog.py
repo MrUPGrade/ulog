@@ -8,32 +8,43 @@ from ulog._base import LogLevel
 import inspect
 
 
-def extract_param_by_name(f, args, kwargs, param):
-    if param in kwargs:
-        return kwargs[param]
+class UnknownArgumentException(Exception):
+    def __init__(self, argument):
+        self._argument = argument
+
+    def __str__(self):
+        return 'Unknown argument %s' % self._argument
+
+    def __unicode__(self):
+        return self.__str__()
+
+
+class NoArgumentProvided(Exception):
+    def __init__(self, argument, argument_position):
+        self._argument = argument
+        self._argument_position = argument_position
+
+    def __str__(self):
+        return "Caller didn't provide a required positional parameter '%s' at index %d" % (
+            self._argument, self._argument_position)
+
+
+def get_argument(argument, func, args, kwargs):
+    if argument in kwargs:
+        return kwargs[argument]
     else:
-        argspec = inspect.getargspec(f)
-        if param in argspec.args:
-            param_index = argspec.args.index(param)
-            if len(args) > param_index:
-                return args[param_index]
+        argspec = inspect.getargspec(func)
+        if argument in argspec.args:
+            argument_index = argspec.args.index(argument)
+            if len(args) > argument_index:
+                return args[argument_index]
             if argspec.defaults is not None:
-                # argsec.defaults holds the values for the LAST entries of argspec.args
-                defaults_index = param_index - len(argspec.args) + len(argspec.defaults)
+                defaults_index = argument_index - len(argspec.args) + len(argspec.defaults)
                 if 0 <= defaults_index < len(argspec.defaults):
                     return argspec.defaults[defaults_index]
-            raise LoggerBadCallerParametersException(
-                "Caller didn't provide a required positional parameter '%s' at index %d", param, param_index)
+            raise NoArgumentProvided(argument=argument, argument_position=argument_index)
         else:
-            raise LoggerUnknownParamException("Unknown param %s(%r) on %s", type(param), param, f.__name__)
-
-
-class LoggerUnknownParamException(Exception):
-    pass
-
-
-class LoggerBadCallerParametersException(Exception):
-    pass
+            raise UnknownArgumentException(argument=argument)
 
 
 class ULog(object):
@@ -122,7 +133,7 @@ class ULog(object):
         log_message = ''
 
         for selecte_arg in arguments:
-            param_value = extract_param_by_name(func, args, kwargs, selecte_arg)
+            param_value = get_argument(selecte_arg, func, args, kwargs)
             log_message += self._parameter_format % (selecte_arg, param_value)
         return log_message
 

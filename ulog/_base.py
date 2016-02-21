@@ -20,9 +20,5 @@ class LogLevel(enum.IntEnum):
 @six.add_metaclass(abc.ABCMeta)
 class LoggerBase(object):
     @abc.abstractmethod
-    def log(self, level, msg):
-        pass
-
-    @abc.abstractmethod
-    def exception(self, level, msg, exception=None):
+    def log(self, level, msg, traceback=False):
         pass

@@ -1,11 +1,12 @@
 # coding=utf-8
 from __future__ import absolute_import
 
+import wrapt
+import inspect
+
 from functools import wraps
 
 from ulog._base import LogLevel
-
-import inspect
 
 
 class UnknownArgumentException(Exception):
@@ -59,23 +60,21 @@ class ULog(object):
                       msg='Call: "{callable_name}" raised exception:',
                       log_level=LogLevel.Error,
                       traceback=True):
-        def decorator(func):
-            @wraps(func)
-            def inner(*args, **kwargs):
-                if self._should_log(log_level):
-                    try:
-                        result = func(*args, **kwargs)
-                    except Exception as ex:
-                        log_message = msg.format(**{'callable_name': func.__name__, 'exception': ex})
-                        self._log(log_level, log_message, traceback)
-                        raise
 
-                    return result
+        @wrapt.decorator
+        def decorator(wrapped, instance, args, kwargs):
+            if self._should_log(log_level):
+                try:
+                    result = wrapped(*args, **kwargs)
+                except Exception as ex:
+                    log_message = msg.format(**{'callable_name': wrapped.__name__, 'exception': ex})
+                    self._log(log_level, log_message, traceback)
+                    raise
 
-                else:
-                    return func(*args, **kwargs)
+                return result
 
-            return inner
+            else:
+                return wrapped(*args, **kwargs)
 
         return decorator
 
@@ -83,46 +82,41 @@ class ULog(object):
                  msg='Call: "{callable_name}" with arguments:',
                  arguments=None,
                  log_level=LogLevel.Debug):
-        def decorator(func):
-            @wraps(func)
-            def inner(*args, **kwargs):
-                if self._should_log(log_level):
-                    log_message = msg.format(**{'callable_name': func.__name__})
-                    if not arguments or len(arguments) == 0:
-                        log_message += self._format_all_parameters(func=func, args=args, kwargs=kwargs)
-                    else:
-                        log_message += self._format_selected_params(arguments=arguments, func=func, args=args,
-                                                                    kwargs=kwargs)
-                    self._log(log_level, log_message)
 
-                    result = func(*args, **kwargs)
-
-                    return result
-
+        @wrapt.decorator
+        def decorator(wrapped, instance, args, kwargs):
+            if self._should_log(log_level):
+                log_message = msg.format(**{'callable_name': wrapped.__name__})
+                if not arguments or len(arguments) == 0:
+                    log_message += self._format_all_parameters(func=wrapped, args=args, kwargs=kwargs)
                 else:
-                    return func(*args, **kwargs)
+                    log_message += self._format_selected_params(arguments=arguments, func=wrapped, args=args,
+                                                                kwargs=kwargs)
+                self._log(log_level, log_message)
 
-            return inner
+                result = wrapped(*args, **kwargs)
+
+                return result
+
+            else:
+                return wrapped(*args, **kwargs)
 
         return decorator
 
     def log_return(self, msg='Call: "{callable_name}" returned value: "{return_value}"', log_level=LogLevel.Debug):
-        def decorator(func):
-            @wraps(func)
-            def inner(*args, **kwargs):
-                if self._should_log(log_level):
-                    result = func(*args, **kwargs)
 
-                    log_message = msg.format(**{'callable_name': func.__name__, 'return_value': result})
-                    self._log(log_level, log_message)
+        @wrapt.decorator
+        def decorator(wrapped, instance, args, kwargs):
+            if self._should_log(log_level):
+                result = wrapped(*args, **kwargs)
 
-                    return result
+                log_message = msg.format(**{'callable_name': wrapped.__name__, 'return_value': result})
+                self._log(log_level, log_message)
 
-                else:
+                return result
 
-                    return func(*args, **kwargs)
-
-            return inner
+            else:
+                return wrapped(*args, **kwargs)
 
         return decorator
 

@@ -5,7 +5,6 @@ set -e
 PYTHONDONTWRITEBYTECODE="True"
 export PYTHONDONTWRITEBYTECODE
 
-
 if [ ! -z $1 ]
 then
 

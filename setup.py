@@ -16,7 +16,8 @@ setup(
         'six',
         'enum34',
         'funcsigs>=0.4',
-        'future'
+        'future',
+	'wrapt>=1.10.6'
     ],
     test_suite='tests',
     extras_require={

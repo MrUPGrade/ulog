@@ -25,7 +25,8 @@ generate_docker_files() {
 build_docker_images() {
     for VER in ${PYTHON_VERSIONS[@]}
     do
-        docker build -t mrupgrade/${PKG_NAME}_test_${VER} -f ${DOCKER_DIR}/Dockerfile.python_${VER} ${DOCKER_DIR}
+        docker build --no-cache --force-rm --pull -t local/${PKG_NAME}_test_${VER} \
+            -f ${DOCKER_DIR}/Dockerfile.python_${VER} ${DOCKER_DIR}
     done
 }
 
@@ -33,11 +34,11 @@ run_tests() {
     for VER in ${PYTHON_VERSIONS[@]}
     do
         cd ${SRC_DIR}
-        IMG_UUID=$(docker ps -a | grep -i mrupgrade/${PKG_NAME}_test_${VER} | awk '{print $1}')
+        IMG_UUID=$(docker ps -a | grep -i local/${PKG_NAME}_test_${VER} | awk '{print $1}')
 
         if [ -z $IMG_UUID ]
         then
-            docker run -it -e "PY_VER=${VER}" -v ${SRC_DIR}:/src mrupgrade/${PKG_NAME}_test_${VER} $1
+            docker run -it -e "PY_VER=${VER}" -v ${SRC_DIR}:/src local/${PKG_NAME}_test_${VER} $1
         else
             docker start -ai ${IMG_UUID}
         fi
@@ -46,7 +47,7 @@ run_tests() {
 
 if [ -z $1 ]
 then
-    echo "usage: $0 gen|build|pytest|cov"
+    echo "usage: $0 gen|build|test|unittest|cov"
 elif [ "$1" = 'gen' ]
 then
     generate_docker_files

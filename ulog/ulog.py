@@ -28,13 +28,15 @@ class NoArgumentProvided(Exception):
             self._argument, self._argument_position)
 
 
-def get_argument(argument, func, args, kwargs):
+def get_argument(argument, func, args, kwargs, skip_instance=False):
     if argument in kwargs:
         return kwargs[argument]
     else:
         argspec = inspect.getargspec(func)
         if argument in argspec.args:
             argument_index = argspec.args.index(argument)
+            if skip_instance:
+                argument_index -= 1
             if len(args) > argument_index:
                 return args[argument_index]
             if argspec.defaults is not None:
@@ -92,11 +94,13 @@ class ULog(object):
                 }
                 log_message = msg.format(**context)
 
+                skip_instance = instance is not None
+
                 if not arguments or len(arguments) == 0:
-                    log_message += self._format_all_parameters(func=wrapped, args=args, kwargs=kwargs)
+                    log_message += self._format_all_parameters(func=wrapped, args=args, kwargs=kwargs, skip_instance=skip_instance)
                 else:
                     log_message += self._format_selected_params(arguments=arguments, func=wrapped, args=args,
-                                                                kwargs=kwargs)
+                                                                kwargs=kwargs, skip_instance=skip_instance)
                 self._log(log_level, log_message)
 
                 result = wrapped(*args, **kwargs)
@@ -131,20 +135,25 @@ class ULog(object):
     def _log(self, level, msg, traceback=False):
         self._logger.log(level, msg, traceback)
 
-    def _format_selected_params(self, arguments, func, args, kwargs):
+    def _format_selected_params(self, arguments, func, args, kwargs, skip_instance):
         log_message = ''
 
         for selecte_arg in arguments:
-            param_value = get_argument(selecte_arg, func, args, kwargs)
+            param_value = get_argument(selecte_arg, func, args, kwargs, skip_instance)
             log_message += self._parameter_format % (selecte_arg, param_value)
         return log_message
 
-    def _format_all_parameters(self, func, args, kwargs):
+    def _format_all_parameters(self, func, args, kwargs, skip_instance):
         log_message = ''
-        func_args = inspect.getargspec(func)
+        func_args_info = inspect.getargspec(func)
+
+        func_args = func_args_info.args
+
+        if skip_instance:
+            func_args = func_args[1:]
 
         for i in range(0, len(args)):
-            log_message += self._parameter_format % (func_args.args[i], args[i])
+            log_message += self._parameter_format % (func_args[i], args[i])
 
         for name, value in kwargs.items():
             log_message += self._parameter_format % (name, value)

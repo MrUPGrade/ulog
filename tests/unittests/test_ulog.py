@@ -103,7 +103,7 @@ class Test_log_args(object):
     def test_if_lower_levels_are_ignored(self, backend_mock):
         logger = ULog(logger=backend_mock, log_level=LogLevel.Critical)
 
-        @logger.log_args(msg=ERROR_MSG, arguments=('p1',), log_level=LogLevel.Debug)
+        @logger.log_args(msg=ERROR_MSG, arguments=('p1',), level=LogLevel.Debug)
         def f(p1, kw1=''):
             return RETURN_VALUE
 
@@ -114,7 +114,7 @@ class Test_log_args(object):
     def test_if_the_same_log_level_is_loged(self, backend_mock):
         logger = ULog(logger=backend_mock, log_level=LogLevel.Debug)
 
-        @logger.log_args(msg=ERROR_MSG, arguments=('p1',), log_level=LogLevel.Debug)
+        @logger.log_args(msg=ERROR_MSG, arguments=('p1',), level=LogLevel.Debug)
         def f(p1, kw1=''):
             return RETURN_VALUE
 

@@ -18,7 +18,6 @@ class MyException(Exception):
 class TestClass(object):
     @ulog.log_return('Return from function {callable_name}: {return_value}')
     @ulog.log_exception(msg='OMG!', traceback=True)
-    # @ulog.log_args('X of {callable_name} is:', arguments=('x',))
     @ulog.log_args()
     def divide_func(self, x, y):
         return x / y

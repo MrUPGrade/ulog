@@ -4,7 +4,7 @@ from __future__ import absolute_import
 import logging
 import logging.handlers
 
-from ulog._base import LoggerBase, LogLevel
+from ulog.base import LoggerBase, LogLevel
 
 
 class PythonLogger(LoggerBase):
@@ -28,6 +28,7 @@ class PythonLogger(LoggerBase):
         self._logger.log(logging_level, msg, exc_info=traceback)
 
     def bootstrap_logger(self):
+        # type: () -> None
         self._logger_reset()
 
         stream_handler = logging.StreamHandler()
@@ -45,4 +46,5 @@ class PythonLogger(LoggerBase):
         map(self._logger.removeFilter, self._logger.filters[:])
 
     def _get_log_level(self, log_level):
+        # type: (int) -> LogLevel
         return self.LOG_LEVEL_MAP[log_level]

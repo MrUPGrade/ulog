@@ -39,12 +39,14 @@ class PythonLogger(LoggerBase):
         self._logger.setLevel(self._get_log_level(LogLevel.NotSet))
 
     def add_std_handler(self, handler):
+        # type: () -> None
         self._logger.addHandler(handler)
 
     def _logger_reset(self):
+        # type: () -> None
         map(self._logger.removeHandler, self._logger.handlers[:])
         map(self._logger.removeFilter, self._logger.filters[:])
 
-    def _get_log_level(self, log_level):
+    def _get_log_level(self, level):
         # type: (int) -> LogLevel
-        return self.LOG_LEVEL_MAP[log_level]
+        return self.LOG_LEVEL_MAP[level]

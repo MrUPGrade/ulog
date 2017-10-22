@@ -1,5 +1,6 @@
 SHELL::=/bin/bash
 RM=rm -Rfv
+PYTHON=python
 PYTEST=pytest
 PIP::=pip
 
@@ -27,3 +28,9 @@ test: clean-test clean-pyc
 
 test-cov: clean-test clean-pyc
 	$(PYTEST) --cov
+
+build-pkg:
+	$(PYTHON) setup.py bdist_wheel --universal
+
+pypi-upload:
+	$(PYTHON) setup.py bdist_wheel --universal upload

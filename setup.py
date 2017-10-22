@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='ulog',
-    version='0.3.0',
+    version='0.3.2',
     packages=['ulog'],
     url='https://github.com/MrUPGrade/ulog',
     license='MIT',
@@ -25,13 +25,15 @@ setup(
             'coverage>=4.0.0',
             'mock>=1.3',
             'pytest',
-            'pytest-cov'
+            'pytest-cov',
         ],
         'dev': [
-            'ipython'
+            'ipython',
+            'wheel',
         ]
     },
     classifiers=[
+        "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.3",

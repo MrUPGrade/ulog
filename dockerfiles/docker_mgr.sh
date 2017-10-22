@@ -7,7 +7,7 @@ SCRIPT_DIR="$(dirname $SCRIPT)"
 SRC_DIR="$(dirname $SCRIPT_DIR)"
 
 DOCKER_DIR=${SRC_DIR}/dockerfiles
-PYTHON_VERSIONS=("2.6" "2.7" "3.3" "3.4" "3.5")
+PYTHON_VERSIONS=("2.6" "2.7" "3.3" "3.4" "3.5" "3.6")
 
 PKG_NAME="ulog"
 

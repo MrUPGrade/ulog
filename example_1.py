@@ -1,10 +1,9 @@
 import logging
 
-from ulog import PythonLogger, ULog, LogLevel
+from ulog import ULog
 
-backend = PythonLogger(python_logger=logging.getLogger())
-backend.bootstrap_logger()
-ulog = ULog(logger=backend, log_level=LogLevel.Debug)
+logging.basicConfig(level=logging.DEBUG)
+ulog = ULog()
 
 
 class MyException(Exception):

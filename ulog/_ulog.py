@@ -1,10 +1,31 @@
 # coding=utf-8
 from __future__ import absolute_import
 
-import wrapt
 import inspect
+import logging
 
-from ulog.base import LogLevel
+import enum
+import wrapt
+
+
+@enum.unique
+class LogLevel(enum.IntEnum):
+    Critical = 50
+    Error = 40
+    Warning = 30
+    Info = 20
+    Debug = 10
+    NotSet = 0
+
+
+LOG_LEVEL_MAP = {
+    LogLevel.Critical: logging.CRITICAL,
+    LogLevel.Error: logging.ERROR,
+    LogLevel.Warning: logging.WARNING,
+    LogLevel.Info: logging.INFO,
+    LogLevel.Debug: logging.DEBUG,
+    LogLevel.NotSet: logging.NOTSET
+}
 
 
 class UnknownArgumentException(Exception):
@@ -51,34 +72,30 @@ def get_argument(argument, func, args, kwargs, skip_instance=False):
 class ULog(object):
     DEFAULT_PARAMETER_FORMAT = "\n%s: %s"
 
-    def __init__(self, logger, log_level=LogLevel.Error):
-        self._logger = logger
-        self._log_level = log_level
+    def __init__(self, name='root', logger=None):
+        self._python_logger = logger
+        self._logger_name = name
         self._parameter_format = self.DEFAULT_PARAMETER_FORMAT
 
     def log_exception(self,
                       msg='Call: "{callable_name}" raised exception of type {exception_type}',
-                      log_level=LogLevel.Error,
+                      level=LogLevel.Error,
                       traceback=True):
-        # type: (str, ulog.base.LogLevel, bool) -> FunctionWrapper
+        # type: (str, Union[LogLevel,int], bool) -> FunctionWrapper
 
         @wrapt.decorator
         def decorator(wrapped, instance, args, kwargs):
-            if self._should_log(log_level):
-                try:
-                    result = wrapped(*args, **kwargs)
-                except Exception as ex:
-                    context = {'callable_name': wrapped.__name__,
-                               'exception_type': type(ex),
-                               'exception': ex}
-                    log_message = msg.format(**context)
-                    self._log(log_level, log_message, traceback)
-                    raise
+            try:
+                result = wrapped(*args, **kwargs)
+            except Exception as ex:
+                context = {'callable_name': wrapped.__name__,
+                           'exception_type': type(ex),
+                           'exception': ex}
+                log_message = msg.format(**context)
+                self._log(level, log_message, traceback)
+                raise
 
-                return result
-
-            else:
-                return wrapped(*args, **kwargs)
+            return result
 
         return decorator
 
@@ -86,63 +103,67 @@ class ULog(object):
                  msg='Call: "{callable_name}" called with arguments',
                  arguments=None,
                  level=LogLevel.Debug):
-        # type: (str, Union[Tuple[str], None], ulog.base.LogLevel) -> FunctionWrapper
+        # type: (str, Union[Tuple[str], None], LogLevel) -> FunctionWrapper
 
         @wrapt.decorator
         def decorator(wrapped, instance, args, kwargs):
-            if self._should_log(level):
-                context = {
-                    'callable_name': wrapped.__name__
-                }
-                log_message = msg.format(**context)
+            context = {
+                'callable_name': wrapped.__name__
+            }
+            log_message = msg.format(**context)
 
-                skip_instance = instance is not None
+            skip_instance = instance is not None
 
-                if not arguments or len(arguments) == 0:
-                    log_message += self._format_all_parameters(func=wrapped,
-                                                               args=args,
-                                                               kwargs=kwargs,
-                                                               skip_instance=skip_instance)
-                else:
-                    log_message += self._format_selected_params(arguments=arguments,
-                                                                func=wrapped,
-                                                                args=args,
-                                                                kwargs=kwargs,
-                                                                skip_instance=skip_instance)
-                self._log(level, log_message)
-
-                result = wrapped(*args, **kwargs)
-
-                return result
-
+            if not arguments or len(arguments) == 0:
+                log_message += self._format_all_parameters(func=wrapped,
+                                                           args=args,
+                                                           kwargs=kwargs,
+                                                           skip_instance=skip_instance)
             else:
-                return wrapped(*args, **kwargs)
+                log_message += self._format_selected_params(arguments=arguments,
+                                                            func=wrapped,
+                                                            args=args,
+                                                            kwargs=kwargs,
+                                                            skip_instance=skip_instance)
+            self._log(level, log_message)
+
+            result = wrapped(*args, **kwargs)
+
+            return result
 
         return decorator
 
-    def log_return(self, msg='Call: "{callable_name}" returned value "{return_value}"', log_level=LogLevel.Debug):
-        # type: (str, ulog.base.LogLevel) -> FunctionWrapper
+    def log_return(self, msg='Call: "{callable_name}" returned value "{return_value}"', level=LogLevel.Debug):
+        # type: (str, Union[LogLevel, int]) -> FunctionWrapper
 
         @wrapt.decorator
         def decorator(wrapped, instance, args, kwargs):
-            if self._should_log(log_level):
-                result = wrapped(*args, **kwargs)
-                context = {
-                    'callable_name': wrapped.__name__,
-                    'return_value': result
-                }
-                log_message = msg.format(**context)
-                self._log(log_level, log_message)
+            result = wrapped(*args, **kwargs)
+            context = {
+                'callable_name': wrapped.__name__,
+                'return_value': result
+            }
+            log_message = msg.format(**context)
+            self._log(level, log_message)
 
-                return result
-
-            else:
-                return wrapped(*args, **kwargs)
+            return result
 
         return decorator
+
+    @property
+    def logger(self):
+        if not self._python_logger:
+            self._python_logger = logging.getLogger(self._logger_name)
+
+        return self._python_logger
 
     def _log(self, level, msg, traceback=False):
-        self._logger.log(level, msg, traceback)
+        if type(level) == LogLevel:
+            python_level = LOG_LEVEL_MAP[level]
+        else:
+            python_level = level
+
+        self.logger.log(python_level, msg, exc_info=traceback)
 
     def _format_selected_params(self, arguments, func, args, kwargs, skip_instance):
         log_message = ''
@@ -168,6 +189,3 @@ class ULog(object):
             log_message += self._parameter_format % (name, value)
 
         return log_message
-
-    def _should_log(self, level):
-        return level >= self._log_level

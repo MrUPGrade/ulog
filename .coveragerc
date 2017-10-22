@@ -6,10 +6,3 @@ source = ulog/
 [report]
 exclude_lines =
     pass
-
-
-[paths]
-source =
-    /home/upgrade/src/ulog/ulog
-    /src/ulog
-    ulog

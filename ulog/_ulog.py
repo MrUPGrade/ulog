@@ -69,6 +69,18 @@ def get_argument(argument, func, args, kwargs, skip_instance=False):
             raise UnknownArgumentException(argument=argument)
 
 
+def prepare_common_context(wrapped, instance):
+    context = {
+        'func_name': wrapped.__name__,
+    }
+    if instance:
+        context['class_name'] = instance.__class__.__name__
+        context['callable_name'] = '{class_name}.{func_name}'.format(**context)
+    else:
+        context['callable_name'] = context['func_name']
+
+    return context
+
 class ULog(object):
     DEFAULT_PARAMETER_FORMAT = "\n%s: %s"
 
@@ -135,7 +147,6 @@ class ULog(object):
 
     def log_return(self, msg='Call: "{callable_name}" returned value "{return_value}"', level=LogLevel.Debug):
         # type: (str, Union[LogLevel, int]) -> FunctionWrapper
-
         @wrapt.decorator
         def decorator(wrapped, instance, args, kwargs):
             result = wrapped(*args, **kwargs)
@@ -146,6 +157,18 @@ class ULog(object):
             log_message = msg.format(**context)
             self._log(level, log_message)
 
+            return result
+
+        return decorator
+
+    def log_call(self, msg='Call: "{callable_name}"', level=LogLevel.Debug):
+        @wrapt.decorator
+        def decorator(wrapped, instance, args, kwargs):
+            context = prepare_common_context(wrapped, instance)
+            log_message = msg.format(**context)
+            self._log(level, log_message)
+
+            result = wrapped(*args, **kwargs)
             return result
 
         return decorator

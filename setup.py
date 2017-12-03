@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='ulog',
-    version='0.3.2',
+    version='0.3.3',
     packages=['ulog'],
     url='https://github.com/MrUPGrade/ulog',
     license='MIT',
